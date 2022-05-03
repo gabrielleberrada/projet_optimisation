@@ -46,12 +46,16 @@ for i in range(N+1):
     opti.subject_to(x[N+1+i]-T_sat <= 0)
     opti.subject_to(-x[i] <= 0)
     opti.subject_to(x[i] - P_M <= 0)
+
 opti.solver('ipopt');
 sol = opti.solve();
-print(f' Pression =  {sol.value(x[N+1:])}')
+print(f' Puissance =  {sol.value(x[N+1:])}')
 print( f' Température = {sol.value(x[:N+1])}')
+print("###########################################################")
+print("###########################################################")
 
 ## Question 10
+
 
 
 opti = casadi.Opti()
@@ -77,7 +81,7 @@ for i in range(ns):
     opti.subject_to(s[i]-E[i] <= 0)
 opti.solver('ipopt');
 sol = opti.solve();
-print(f' Pression =  {sol.value(x[N+1:])}')
-print( f' Température = {sol.value(x[:N+1])}')
-
-
+print(f' Puissance =  {sol.value(x[:N+1])}')
+print( f' Température = {sol.value(x[N+1:])}')
+print ("##################################################")
+print ("##################################################")
