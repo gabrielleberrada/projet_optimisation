@@ -164,7 +164,7 @@ def resol_q14():
         for k in range(n0, n0+n):
             res_cons += min(Pi[k]+PL, E[k])
         for k in range(n0+n, N):
-            res_cons += min(Pi[k], E[k])
+            res_cons += min(Pi[k]*delta_t, E[k])
         P_cons.append(res_cons)
     i = np.argmax(P_cons)
     return P[i], T[i], i
