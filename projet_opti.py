@@ -160,17 +160,61 @@ def resol_q14():
         T.append(Ti)
         res_cons = 0
         for k in range(n0):
-            res_cons += min(Pi[k], E[k])
+            res_cons += min(Pi[k]*delta_t, E[k])
         for k in range(n0, n0+n):
-            res_cons += min(Pi[k]+PL, E[k])
+            res_cons += min((Pi[k]+PL)*delta_t, E[k])
         for k in range(n0+n, N):
             res_cons += min(Pi[k]*delta_t, E[k])
         P_cons.append(res_cons)
     i = np.argmax(P_cons)
     return P[i], T[i], i
 
-puissance, temperature, i = resol_q14()
-print(f' Puissance (en W) =  {puissance}')
-print(f' Température (en °C) = {temperature}')
-print(f"Temps de démarrage : {i*delta_t}")
+# puissance, temperature, i = resol_q14()
+# print(f' Puissance (en W) =  {puissance}')
+# print(f' Température (en °C) = {temperature}')
+# print(f"Temps de démarrage : {i*delta_t}")
     
+
+## Question 16
+
+def resol_q16(M):
+    opti = casadi.Opti()
+    P = opti.variable(N+1)
+    T = opti.variable(N+1)
+    s = opti.variable(N+1)
+    delta = opti.variable(N+1)
+    f = 0
+    for i in range(1, N+1):
+        f -= s[i]
+    opti.minimize(f)
+    opti.subject_to(P[N] == 0)
+    opti.subject_to(T[0]-T_in == 0)
+    for i in range(1, N+1):
+        opti.subject_to(T[i]-np.exp(-k*delta_t)*T[i-1]-(1-np.exp(-k*delta_t))/k*C*(P[i-1]-Q[i-1])==0)
+    # Contraintes sur T
+    for i in range(N+1):
+        opti.subject_to(-T[i]+273.15 <= 0)
+        opti.subject_to(T[i]-T_sat <= 0)
+    # Contraintes sur P
+    for i in range(N+1):
+        opti.subject_to(-P[i] <= 0)
+        opti.subject_to(P[i] - P_M <= 0)
+    # Contraintes sur s
+    for i in range(N+1):
+        opti.subject_to(s[i] - E[i] <= 0)
+        opti.subject_to(s[i] - (P[i] + delta[i]*PL)*delta_t<= 0)
+    # Contraintes sur delta
+    for i in range(N+1):
+        opti.subject_to(delta[i]**2 - delta[i] == 0)
+        opti.subject_to(cumsum(delta) - nL == 0)
+    for i in range(N):
+        opti.subject_to(nL - cumsum(delta[:i+1]) + M*(delta[i]-delta[i+1]-1) <= 0)
+    opti.solver('ipopt');
+    sol = opti.solve();
+    return sol.value(P), sol.value(T)-273.15, np.argmax(sol.value(delta))
+
+puissance16, temperature16, temps = resol_q16(10**3)
+print(f' Puissance (en W) =  {puissance16}')
+print(f' Température (en °C) = {temperature16}')
+print(f"Temps de démarrage : {temps*delta_t}")
+
