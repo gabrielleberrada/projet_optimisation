@@ -102,7 +102,7 @@ def resol_q10():
 
 # Constantes
 t_i0 = 0
-n0 = t_i0/delta_t
+n0 = int(t_i0/delta_t)
 nL = 6
 PL = 0.25
 
@@ -143,9 +143,9 @@ def resol_sous_pb(n0):
     sol = opti.solve();
     return sol.value(P), sol.value(T)-273.15
 
-puissance13, temperature13 = resol_sous_pb(0)
-print(f' Puissance (en W) =  {puissance13}')
-print(f' Température (en °C) = {temperature13}')
+# puissance13, temperature13 = resol_sous_pb(0)
+# print(f' Puissance (en W) =  {puissance13}')
+# print(f' Température (en °C) = {temperature13}')
 
 
 ## Question 14
@@ -166,5 +166,11 @@ def resol_q14():
         for k in range(n0+n, N):
             res_cons += min(Pi[k], E[k])
         P_cons.append(res_cons)
-    return np.argmax(P_cons)
+    i = np.argmax(P_cons)
+    return P[i], T[i], i
+
+puissance, temperature, i = resol_q14()
+print(f' Puissance (en W) =  {puissance}')
+print(f' Température (en °C) = {temperature}')
+print(f"Temps de démarrage : {i*delta_t}")
     
