@@ -109,7 +109,11 @@ def resol_q10():
 # plt.legend()
 # plt.title("Graphe de l'énergie produite et de l'énergie consommée en fonction du temps (en kJ)")
 # plt.show()
+<<<<<<< HEAD
 # plt.plot(t, temperature10, label = 'Temperature (°C)')
+=======
+# plt.plot(t, temperature10 - 273.15, label = 'Temperature (°C)')
+>>>>>>> cd411261974f281c17960bb30e4c65049e2238d1
 # plt.show()
 
 
@@ -246,7 +250,11 @@ def resol_q14():
 
 ## Question 16
 
+<<<<<<< HEAD
 def resol_q16(P0=0, T0=T_in, s0=np.zeros((N+1),), delta0=np.zeros((N+1),), M=10**3):
+=======
+def resol_q16(M):
+>>>>>>> cd411261974f281c17960bb30e4c65049e2238d1
     opti = casadi.Opti()
     P = opti.variable(N+1)
     T = opti.variable(N+1)
@@ -273,6 +281,7 @@ def resol_q16(P0=0, T0=T_in, s0=np.zeros((N+1),), delta0=np.zeros((N+1),), M=10*
         opti.subject_to(s[i] - E[i] <= 0)
         opti.subject_to(s[i] - (P[i] + delta[i]*PL)*delta_t*3.6 <= 0)
     # Contraintes sur delta
+<<<<<<< HEAD
     delta_sum = 0
     for i in range(N):
         delta_sum += delta[i]
@@ -284,12 +293,20 @@ def resol_q16(P0=0, T0=T_in, s0=np.zeros((N+1),), delta0=np.zeros((N+1),), M=10*
     opti.set_initial(s, s0)
     opti.set_initial(T, T0)
     opti.set_initial(delta, delta0)
+=======
+    for i in range(N+1):
+        opti.subject_to(delta[i]**2 - delta[i] == 0)
+        opti.subject_to(cumsum(delta) - nL == 0) #pour sommer les coeffs de delta
+    for i in range(N):
+        opti.subject_to(nL - cumsum(delta[:i+1]) + M*(delta[i]-delta[i+1]-1) <= 0)
+>>>>>>> cd411261974f281c17960bb30e4c65049e2238d1
     opti.solver('ipopt');
     sol = opti.solve();
     return sol.value(s), sol.value(P), sol.value(T)-273.15, np.argmax(sol.value(delta))
 
 s, puissance16, temperature16, temps = resol_q16(10**3)
 # print(s)
+<<<<<<< HEAD
 # print(f' Puissance (en kW) =  {puissance16}')
 # print(f' Température (en °C) = {temperature16}')
 # print(f"Temps de démarrage : {temps*delta_t}")
@@ -303,3 +320,9 @@ plt.show()
 plt.plot(t, np.round(temperature16, 2))
 plt.title("Température du chauffe-eau en fonction du temps")
 plt.show()
+=======
+# print(f' Puissance (en W) =  {puissance16}')
+# print(f' Température (en °C) = {temperature16}')
+# print(f"Temps de démarrage : {temps*delta_t}")
+
+>>>>>>> cd411261974f281c17960bb30e4c65049e2238d1
