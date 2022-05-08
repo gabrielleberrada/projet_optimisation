@@ -109,7 +109,7 @@ def resol_q10():
 # plt.legend()
 # plt.title("Graphe de l'énergie produite et de l'énergie consommée en fonction du temps (en kJ)")
 # plt.show()
-# plt.plot(t, temperature10 - 273.15, label = 'Temperature (°C)')
+# plt.plot(t, temperature10, label = 'Temperature (°C)')
 # plt.show()
 
 
@@ -246,7 +246,7 @@ def resol_q14():
 
 ## Question 16
 
-def resol_q16(M):
+def resol_q16(P0=0, T0=T_in, s0=np.zeros((N+1),), delta0=np.zeros((N+1),), M=10**3):
     opti = casadi.Opti()
     P = opti.variable(N+1)
     T = opti.variable(N+1)
@@ -273,18 +273,94 @@ def resol_q16(M):
         opti.subject_to(s[i] - E[i] <= 0)
         opti.subject_to(s[i] - (P[i] + delta[i]*PL)*delta_t*3.6 <= 0)
     # Contraintes sur delta
+    delta_sum = 0
+    for i in range(N):
+        delta_sum += delta[i]
+        opti.subject_to(nL - delta_sum + M*(delta[i]-delta[i+1]-1) <= 0)
     for i in range(N+1):
         opti.subject_to(delta[i]**2 - delta[i] == 0)
-        opti.subject_to(cumsum(delta) - nL == 0) #pour sommer les coeffs de delta
-    for i in range(N):
-        opti.subject_to(nL - cumsum(delta[:i+1]) + M*(delta[i]-delta[i+1]-1) <= 0)
+        opti.subject_to(delta_sum - nL == 0) #pour sommer les coeffs de delta
+    opti.set_initial(P, P0)
+    opti.set_initial(s, s0)
+    opti.set_initial(T, T0)
+    opti.set_initial(delta, delta0)
     opti.solver('ipopt');
     sol = opti.solve();
     return sol.value(s), sol.value(P), sol.value(T)-273.15, np.argmax(sol.value(delta))
 
 s, puissance16, temperature16, temps = resol_q16(10**3)
 # print(s)
-# print(f' Puissance (en W) =  {puissance16}')
+# print(f' Puissance (en kW) =  {puissance16}')
 # print(f' Température (en °C) = {temperature16}')
 # print(f"Temps de démarrage : {temps*delta_t}")
 
+t = np.array([k*delta_t+t0 for k in range(N+1)])
+plt.plot(t, np.round(puissance16*delta_t*3.6, 2), label = 'Energie consommée totale')
+plt.plot(t, np.round(E, 2), label = "Energie produite")
+plt.legend()
+plt.title("Graphe de l'énergie produite et de l'énergie consommée\nen fonction du temps dans le cas optimal")
+plt.show()
+plt.plot(t, np.round(temperature16, 2))
+plt.title("Température du chauffe-eau en fonction du temps")
+plt.show()
+
+# question 17 
+
+def resol_q16(P0=0, T0=T_in, s0=np.zeros((N+1),), delta0=np.zeros((N+1),), M=10**3):
+    opti = casadi.Opti()
+    P = opti.variable(N+1)
+    T = opti.variable(N+1)
+    s = opti.variable(N+1)
+    delta = opti.variable(N+1)
+    f = 0
+    for i in range(1, N+1):
+        f -= s[i]
+    opti.minimize(f)
+    opti.subject_to(P[N] == 0)
+    opti.subject_to(T[0]-T_in == 0)
+    for i in range(1, N+1):
+        opti.subject_to(T[i]-np.exp(-k*delta_t)*T[i-1]-(1-np.exp(-k*delta_t))/k*C*(P[i-1]-Q[i-1])==0)
+    # Contraintes sur T
+    for i in range(N+1):
+        opti.subject_to(-T[i]+273.15 <= 0)
+        opti.subject_to(T[i]-T_sat <= 0)
+    # Contraintes sur P
+    for i in range(N+1):
+        opti.subject_to(-P[i] <= 0)
+        opti.subject_to(P[i] - P_M <= 0)
+    # Contraintes sur s
+    for i in range(N+1):
+        opti.subject_to(s[i] - E[i] <= 0)
+        opti.subject_to(s[i] - (P[i] + delta[i]*PL)*delta_t*3.6 <= 0)
+    # Contraintes sur delta
+    delta_sum = 0
+    for i in range(N):
+        delta_sum += delta[i]
+        opti.subject_to(nL - delta_sum + M*(delta[i]-delta[i+1]-1) <= 0)
+    for i in range(N+1):
+        opti.subject_to(delta[i]**2 - delta[i] <= 0)
+        - delta[i] <= 0
+        opti.subject_to(delta_sum - nL == 0) #pour sommer les coeffs de delta
+    opti.set_initial(P, P0)
+    opti.set_initial(s, s0)
+    opti.set_initial(T, T0)
+    opti.set_initial(delta, delta0)
+    opti.solver('ipopt');
+    sol = opti.solve();
+    return sol.value(s), sol.value(P), sol.value(T)-273.15, np.argmax(sol.value(delta))
+
+s, puissance17, temperature17, temps = resol_q16(10**3)
+# print(s)
+# print(f' Puissance (en kW) =  {puissance17}')
+# print(f' Température (en °C) = {temperature17}')
+# print(f"Temps de démarrage : {temps*delta_t}")
+
+t = np.array([k*delta_t+t0 for k in range(N+1)])
+plt.plot(t, np.round(puissance16*delta_t*3.6, 2), label = 'Energie consommée totale')
+plt.plot(t, np.round(E, 2), label = "Energie produite")
+plt.legend()
+plt.title("Graphe de l'énergie produite et de l'énergie consommée\nen fonction du temps dans le cas optimal")
+plt.show()
+plt.plot(t, np.round(temperature17, 2))
+plt.title("Température du chauffe-eau en fonction du temps")
+plt.show()
