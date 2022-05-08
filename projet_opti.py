@@ -52,11 +52,13 @@ def resol_q4(plot=False):
     sol = opti.solve();
     if plot:
         t = np.array([k*delta_t for k in range(N+1)])
-        plt.plot(t, sol.value(P), label = 'Puissance')
+        plt.plot(t, sol.value(P), label = 'Puissance x delta_t')
         plt.plot(t, E, label = 'Energie produite')
         plt.legend()
+        plt.title("")
         plt.show()
         plt.plot(t, sol.value(T) - 273.15, label = 'Temperature')
+        plt.title("")
         plt.show()
     return sol.value(P), sol.value(T) - 273.15
 
