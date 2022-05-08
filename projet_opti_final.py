@@ -109,7 +109,7 @@ def resol_q10():
 # plt.legend()
 # plt.title("Graphe de l'énergie produite et de l'énergie consommée en fonction du temps (en kJ)")
 # plt.show()
-# plt.plot(t, temperature10 - 273.15, label = 'Temperature (°C)')
+# plt.plot(t, temperature10, label = 'Temperature (°C)')
 # plt.show()
 
 
@@ -206,12 +206,12 @@ def resol_q14():
     i = np.argmax(P_cons)
     return P[i], P_ce[i], P_mal[i], T[i], i, P_cons
 
-# puissance14, puissance_ce, puissance_mal, temperature14, i, P_cons = resol_q14()
+puissance14, puissance_ce, puissance_mal, temperature14, i, P_cons = resol_q14()
 # puissance_mal = np.array(puissance_mal)
 # print(f' Puissance (en kW) =  {puissance14}')
 # print(f' Température (en °C) = {temperature14}')
 # print(f"Temps de démarrage : {i*delta_t} h")
-# print(f"Puissance totale consommée à chaque instant de départ (en kW): {P_cons}")
+print(f"Puissance totale consommée à chaque instant de départ (en kW): {P_cons}")
 # print(puissance_ce)
 # print(puissance_mal)
 # print(np.array(E)/delta_t)
@@ -273,18 +273,29 @@ def resol_q16(M):
         opti.subject_to(s[i] - E[i] <= 0)
         opti.subject_to(s[i] - (P[i] + delta[i]*PL)*delta_t*3.6 <= 0)
     # Contraintes sur delta
+    delta_sum = 0
+    for i in range(N):
+        delta_sum += delta[i]
+        opti.subject_to(nL - delta_sum + M*(delta[i]-delta[i+1]-1) <= 0)
     for i in range(N+1):
         opti.subject_to(delta[i]**2 - delta[i] == 0)
-        opti.subject_to(cumsum(delta) - nL == 0) #pour sommer les coeffs de delta
-    for i in range(N):
-        opti.subject_to(nL - cumsum(delta[:i+1]) + M*(delta[i]-delta[i+1]-1) <= 0)
+        opti.subject_to(delta_sum - nL == 0) #pour sommer les coeffs de delta
     opti.solver('ipopt');
     sol = opti.solve();
     return sol.value(s), sol.value(P), sol.value(T)-273.15, np.argmax(sol.value(delta))
 
-s, puissance16, temperature16, temps = resol_q16(10**3)
+# s, puissance16, temperature16, temps = resol_q16(10**3)
 # print(s)
-# print(f' Puissance (en W) =  {puissance16}')
+# print(f' Puissance (en kW) =  {puissance16}')
 # print(f' Température (en °C) = {temperature16}')
 # print(f"Temps de démarrage : {temps*delta_t}")
 
+# t = np.array([k*delta_t+t0 for k in range(N+1)])
+# plt.plot(t, np.round(puissance16*delta_t*3.6, 2), label = 'Energie consommée totale')
+# plt.plot(t, np.round(E, 2), label = "Energie produite")
+# plt.legend()
+# plt.title("Graphe de l'énergie produite et de l'énergie consommée\nen fonction du temps dans le cas optimal")
+# plt.show()
+# plt.plot(t, np.round(temperature16, 2))
+# plt.title("Température du chauffe-eau en fonction du temps")
+# plt.show()
